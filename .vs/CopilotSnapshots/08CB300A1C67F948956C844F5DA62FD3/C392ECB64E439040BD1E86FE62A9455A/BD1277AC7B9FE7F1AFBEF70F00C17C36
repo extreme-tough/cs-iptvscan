@@ -1,0 +1,92 @@
+﻿using System.Globalization;
+using IPTVInfo;
+public sealed partial class MainForm : Form
+{
+    public MainForm()
+    {
+        InitializeComponent();
+        _fullUrlMode.CheckedChanged += (_, _) => UpdateInputMode();
+        _loadButton.Click += async (_, _) => await LoadDetailsAsync();
+        _testStreamButton.Click += async (_, _) => await TestStreamAsync();
+        UpdateInputMode();
+    }
+
+    private void UpdateInputMode()
+    {
+        bool useFullUrl = _fullUrlMode.Checked;
+        _fullUrlInput.Enabled = useFullUrl;
+        _serverInput.Enabled = !useFullUrl;
+        _usernameInput.Enabled = !useFullUrl;
+        _passwordInput.Enabled = !useFullUrl;
+    }
+
+    private XtreamIPTV CreateClient()
+    {
+        return _fullUrlMode.Checked
+            ? new XtreamIPTV(_fullUrlInput.Text.Trim())
+            : new XtreamIPTV(_serverInput.Text.Trim(), _usernameInput.Text.Trim(), _passwordInput.Text);
+    }
+
+    private async Task TestStreamAsync()
+    {
+        _loadButton.Enabled = false;
+        _testStreamButton.Enabled = false;
+        _status.Text = "Testing up to 10 random live channels...";
+        _details.Clear();
+
+        try
+        {
+            var (streamWorks, testedCount, diagnostics) = await CreateClient().TestStreamAsync();
+            _details.Text = string.Join(Environment.NewLine, diagnostics);
+            _details.AppendText(Environment.NewLine + Environment.NewLine +
+                $"Final result: {(streamWorks ? "Passed" : "Failed")}. Tested {testedCount} channel(s); " +
+                (streamWorks ? "at least one valid stream was received." : "no valid stream was received."));
+            _status.Text = $"Stream test {(streamWorks ? "passed" : "failed")}; {testedCount} channel(s) tested. See results below.";
+        }
+        catch (Exception ex)
+        {
+            _status.Text = $"Could not test streams: {ex.Message}";
+            _details.Text = $"Stream test could not complete: {ex}";
+        }
+        finally
+        {
+            _loadButton.Enabled = true;
+            _testStreamButton.Enabled = true;
+        }
+    }
+
+    private async Task LoadDetailsAsync()
+    {
+        _loadButton.Enabled = false;
+        _status.Text = "Loading...";
+        _details.Clear();
+
+        try
+        {
+            XtreamAccount account = await CreateClient().GetServerDetailsAsync();
+            _details.Text = string.Join(Environment.NewLine,
+            [
+                $"Status: {account.Status ?? "Not provided"}",
+                $"Subscription expires: {account.ExpirationDate?.ToLocalTime().ToString("g", CultureInfo.CurrentCulture) ?? "No expiry / not provided"}",
+                $"Trial account: {account.IsTrial?.ToString() ?? "Not provided"}",
+                $"Active connections: {account.ActiveConnections?.ToString(CultureInfo.CurrentCulture) ?? "Not provided"}",
+                $"Maximum connections: {account.MaxConnections?.ToString(CultureInfo.CurrentCulture) ?? "Not provided"}",
+                $"Server: {account.Server?.Url ?? "Not provided"}",
+                $"Port: {account.Server?.Port ?? "Not provided"}",
+                $"HTTPS port: {account.Server?.HttpsPort ?? "Not provided"}",
+                $"Protocol: {account.Server?.Protocol ?? "Not provided"}",
+                $"Timezone: {account.Server?.Timezone ?? "Not provided"}",
+                $"Server time: {account.Server?.TimeNow ?? "Not provided"}"
+            ]);
+            _status.Text = "Details loaded.";
+        }
+        catch (Exception ex)
+        {
+            _status.Text = $"Could not load details: {ex.Message}";
+        }
+        finally
+        {
+            _loadButton.Enabled = true;
+        }
+    }
+}

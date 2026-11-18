@@ -1,0 +1,158 @@
+﻿using System.Globalization;
+
+public sealed partial class MainForm : Form
+{
+    private RadioButton _fullUrlMode = null!;
+    private RadioButton _separateFieldsMode = null!;
+    private TextBox _fullUrlInput = null!;
+    private TextBox _serverInput = null!;
+    private TextBox _usernameInput = null!;
+    private TextBox _passwordInput = null!;
+    private Button _loadButton = null!;
+    private Label _status = null!;
+    private TableLayoutPanel _details = null!;
+
+    public MainForm()
+    {
+        InitializeComponent();
+        _fullUrlMode.CheckedChanged += (_, _) => UpdateInputMode();
+        _loadButton.Click += async (_, _) => await LoadDetailsAsync();
+        UpdateInputMode();
+    }
+
+    private static void AddInputRow(TableLayoutPanel panel, string label, Control input)
+    {
+        int row = panel.RowCount++;
+        panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        panel.Controls.Add(new Label { Text = label, AutoSize = true, Anchor = AnchorStyles.Left, Padding = new Padding(0, 6, 12, 0) }, 0, row);
+        panel.Controls.Add(input, 1, row);
+    }
+
+    private void UpdateInputMode()
+    {
+        bool useFullUrl = _fullUrlMode.Checked;
+        _fullUrlInput.Enabled = useFullUrl;
+        _serverInput.Enabled = !useFullUrl;
+        _usernameInput.Enabled = !useFullUrl;
+        _passwordInput.Enabled = !useFullUrl;
+    }
+
+    private async Task LoadDetailsAsync()
+    {
+        _loadButton.Enabled = false;
+        _status.Text = "Loading...";
+        _details.Controls.Clear();
+        _details.RowStyles.Clear();
+        _details.RowCount = 0;
+
+        try
+        {
+            XtreamIPTV client = _fullUrlMode.Checked
+                ? new XtreamIPTV(_fullUrlInput.Text.Trim())
+                : new XtreamIPTV(_serverInput.Text.Trim(), _usernameInput.Text, _passwordInput.Text);
+
+            XtreamAccount account = await client.GetServerDetailsAsync();
+            AddDetail("Status", account.Status);
+            AddDetail("Subscription expires", account.ExpirationDate?.ToLocalTime().ToString("g", CultureInfo.CurrentCulture) ?? "No expiry / not provided");
+            AddDetail("Trial account", account.IsTrial?.ToString() ?? "Not provided");
+            AddDetail("Active connections", account.ActiveConnections?.ToString(CultureInfo.CurrentCulture) ?? "Not provided");
+            AddDetail("Maximum connections", account.MaxConnections?.ToString(CultureInfo.CurrentCulture) ?? "Not provided");
+            AddDetail("Server", account.Server?.Url);
+            AddDetail("Port", account.Server?.Port);
+            AddDetail("HTTPS port", account.Server?.HttpsPort);
+            AddDetail("Protocol", account.Server?.Protocol);
+            AddDetail("Timezone", account.Server?.Timezone);
+            AddDetail("Server time", account.Server?.TimeNow);
+            _status.Text = "Details loaded.";
+        }
+        catch (Exception ex)
+        {
+            _status.Text = $"Could not load details: {ex.Message}";
+        }
+        finally
+        {
+            _loadButton.Enabled = true;
+        }
+    }
+
+    private void InitializeComponent()
+    {
+        SuspendLayout();
+
+        Text = "Xtream Server Details";
+        StartPosition = FormStartPosition.CenterScreen;
+        MinimumSize = new Size(560, 480);
+        Size = new Size(680, 560);
+
+        _fullUrlMode = new RadioButton { Text = "Full M3U URL", AutoSize = true, Checked = true };
+        _separateFieldsMode = new RadioButton { Text = "Server and credentials", AutoSize = true };
+        _fullUrlInput = new TextBox { Dock = DockStyle.Fill };
+        _serverInput = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "https://server.example:8080" };
+        _usernameInput = new TextBox { Dock = DockStyle.Fill };
+        _passwordInput = new TextBox { Dock = DockStyle.Fill, UseSystemPasswordChar = true };
+        _loadButton = new Button { Text = "Get details", AutoSize = true };
+        _status = new Label { AutoSize = true, Padding = new Padding(8, 6, 0, 0) };
+        _details = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 2,
+            Padding = new Padding(0, 8, 0, 0)
+        };
+
+        var layout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Padding = new Padding(16),
+            ColumnCount = 1,
+            RowCount = 4,
+            AutoScroll = true
+        };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+        var modePanel = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true };
+        modePanel.Controls.AddRange([_fullUrlMode, _separateFieldsMode]);
+        layout.Controls.Add(modePanel, 0, 0);
+
+        var inputPanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 2,
+            Padding = new Padding(0, 8, 0, 8)
+        };
+        inputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        inputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        AddInputRow(inputPanel, "M3U URL", _fullUrlInput);
+        AddInputRow(inputPanel, "Server URL", _serverInput);
+        AddInputRow(inputPanel, "Username", _usernameInput);
+        AddInputRow(inputPanel, "Password", _passwordInput);
+        layout.Controls.Add(inputPanel, 0, 1);
+
+        var actionPanel = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true };
+        actionPanel.Controls.Add(_loadButton);
+        actionPanel.Controls.Add(_status);
+        layout.Controls.Add(actionPanel, 0, 2);
+
+        _details.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _details.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        layout.Controls.Add(_details, 0, 3);
+        Controls.Add(layout);
+
+        ResumeLayout(performLayout: true);
+    }
+
+    private void AddDetail(string name, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+
+        int row = _details.RowCount++;
+        _details.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        _details.Controls.Add(new Label { Text = name, AutoSize = true, Padding = new Padding(0, 3, 12, 3) }, 0, row);
+        _details.Controls.Add(new Label { Text = value, AutoSize = true, Padding = new Padding(0, 3, 0, 3) }, 1, row);
+    }
+}

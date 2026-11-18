@@ -1,0 +1,203 @@
+﻿partial class MainForm
+{
+    private RadioButton _fullUrlMode = null!;
+    private RadioButton _separateFieldsMode = null!;
+    private TextBox _fullUrlInput = null!;
+    private TextBox _serverInput = null!;
+    private TextBox _usernameInput = null!;
+    private TextBox _passwordInput = null!;
+    private Button _loadButton = null!;
+    private Button _testStreamButton = null!;
+    private Label _status = null!;
+    private TextBox _details = null!;
+    private GroupBox _modeGroup = null!;
+    private Label _fullUrlLabel = null!;
+    private Label _serverLabel = null!;
+    private Label _usernameLabel = null!;
+    private Label _passwordLabel = null!;
+    private Button _importFileButton = null!;
+    private Button _saveCsvButton = null!;
+    private TabControl _resultsTabs = null!;
+    private TabPage _accountsTab = null!;
+    private TabPage _detailsTab = null!;
+    private DataGridView _accountsGrid = null!;
+
+    private void InitializeComponent()
+    {
+        _modeGroup = new GroupBox();
+        _fullUrlMode = new RadioButton();
+        _separateFieldsMode = new RadioButton();
+        _fullUrlInput = new TextBox();
+        _serverInput = new TextBox();
+        _usernameInput = new TextBox();
+        _passwordInput = new TextBox();
+        _loadButton = new Button();
+        _testStreamButton = new Button();
+        _importFileButton = new Button();
+        _saveCsvButton = new Button();
+        _status = new Label();
+        _details = new TextBox();
+        _resultsTabs = new TabControl();
+        _accountsTab = new TabPage();
+        _detailsTab = new TabPage();
+        _accountsGrid = new DataGridView();
+        _fullUrlLabel = new Label();
+        _serverLabel = new Label();
+        _usernameLabel = new Label();
+        _passwordLabel = new Label();
+
+        SuspendLayout();
+        _modeGroup.SuspendLayout();
+
+        _modeGroup.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        _modeGroup.Location = new Point(16, 16);
+        _modeGroup.Name = "_modeGroup";
+        _modeGroup.Size = new Size(632, 64);
+        _modeGroup.Text = "Connection details";
+        _modeGroup.Controls.Add(_fullUrlMode);
+        _modeGroup.Controls.Add(_separateFieldsMode);
+
+        _fullUrlMode.AutoSize = true;
+        _fullUrlMode.Checked = true;
+        _fullUrlMode.Location = new Point(16, 26);
+        _fullUrlMode.Name = "_fullUrlMode";
+        _fullUrlMode.Text = "Full M3U URL";
+
+        _separateFieldsMode.AutoSize = true;
+        _separateFieldsMode.Location = new Point(160, 26);
+        _separateFieldsMode.Name = "_separateFieldsMode";
+        _separateFieldsMode.Text = "Server and credentials";
+
+        _fullUrlLabel.AutoSize = true;
+        _fullUrlLabel.Location = new Point(16, 97);
+        _fullUrlLabel.Name = "_fullUrlLabel";
+        _fullUrlLabel.Text = "M3U URL";
+
+        _serverLabel.AutoSize = true;
+        _serverLabel.Location = new Point(16, 133);
+        _serverLabel.Name = "_serverLabel";
+        _serverLabel.Text = "Server URL";
+
+        _usernameLabel.AutoSize = true;
+        _usernameLabel.Location = new Point(16, 169);
+        _usernameLabel.Name = "_usernameLabel";
+        _usernameLabel.Text = "Username";
+
+        _passwordLabel.AutoSize = true;
+        _passwordLabel.Location = new Point(16, 205);
+        _passwordLabel.Name = "_passwordLabel";
+        _passwordLabel.Text = "Password";
+
+        _fullUrlInput.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        _fullUrlInput.Location = new Point(150, 94);
+        _fullUrlInput.Name = "_fullUrlInput";
+        _fullUrlInput.Size = new Size(498, 23);
+
+        _serverInput.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        _serverInput.Location = new Point(150, 130);
+        _serverInput.Name = "_serverInput";
+        _serverInput.PlaceholderText = "https://server.example:8080";
+        _serverInput.Size = new Size(498, 23);
+
+        _usernameInput.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        _usernameInput.Location = new Point(150, 166);
+        _usernameInput.Name = "_usernameInput";
+        _usernameInput.Size = new Size(498, 23);
+
+        _passwordInput.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        _passwordInput.Location = new Point(150, 202);
+        _passwordInput.Name = "_passwordInput";
+        _passwordInput.Size = new Size(498, 23);
+        _passwordInput.UseSystemPasswordChar = true;
+
+        _loadButton.Location = new Point(16, 244);
+        _loadButton.Name = "_loadButton";
+        _loadButton.Size = new Size(112, 30);
+        _loadButton.Text = "Get details";
+
+        _testStreamButton.Location = new Point(136, 244);
+        _testStreamButton.Name = "_testStreamButton";
+        _testStreamButton.Size = new Size(112, 30);
+        _testStreamButton.Text = "Test stream";
+
+        _importFileButton.Location = new Point(256, 244);
+        _importFileButton.Name = "_importFileButton";
+        _importFileButton.Size = new Size(136, 30);
+        _importFileButton.Text = "Test URLs from file";
+
+        _saveCsvButton.Location = new Point(402, 244);
+        _saveCsvButton.Name = "_saveCsvButton";
+        _saveCsvButton.Size = new Size(92, 30);
+        _saveCsvButton.Text = "Save CSV";
+
+        _status.AutoSize = true;
+        _status.Location = new Point(502, 251);
+        _status.MaximumSize = new Size(146, 40);
+        _status.Name = "_status";
+
+        _resultsTabs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        _resultsTabs.Location = new Point(16, 286);
+        _resultsTabs.Name = "_resultsTabs";
+        _resultsTabs.Size = new Size(632, 240);
+
+        _accountsTab.Name = "_accountsTab";
+        _accountsTab.Text = "Working accounts";
+        _accountsTab.UseVisualStyleBackColor = true;
+
+        _detailsTab.Name = "_detailsTab";
+        _detailsTab.Text = "Details / test output";
+        _detailsTab.UseVisualStyleBackColor = true;
+
+        _accountsGrid.AllowUserToAddRows = false;
+        _accountsGrid.AllowUserToDeleteRows = false;
+        _accountsGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        _accountsGrid.Dock = DockStyle.Fill;
+        _accountsGrid.MultiSelect = false;
+        _accountsGrid.Name = "_accountsGrid";
+        _accountsGrid.ReadOnly = true;
+        _accountsGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        _accountsGrid.Columns.Add("Server", "Server");
+        _accountsGrid.Columns.Add("Username", "User ID");
+        _accountsGrid.Columns.Add("Password", "Password");
+        _accountsGrid.Columns.Add("ChannelCount", "Channels");
+
+        _details.Dock = DockStyle.Fill;
+        _details.Multiline = true;
+        _details.Name = "_details";
+        _details.ReadOnly = true;
+        _details.ScrollBars = ScrollBars.Vertical;
+
+        _accountsTab.Controls.Add(_accountsGrid);
+        _detailsTab.Controls.Add(_details);
+        _resultsTabs.Controls.Add(_accountsTab);
+        _resultsTabs.Controls.Add(_detailsTab);
+
+        Controls.Add(_modeGroup);
+        Controls.Add(_fullUrlLabel);
+        Controls.Add(_serverLabel);
+        Controls.Add(_usernameLabel);
+        Controls.Add(_passwordLabel);
+        Controls.Add(_fullUrlInput);
+        Controls.Add(_serverInput);
+        Controls.Add(_usernameInput);
+        Controls.Add(_passwordInput);
+        Controls.Add(_loadButton);
+        Controls.Add(_testStreamButton);
+        Controls.Add(_importFileButton);
+        Controls.Add(_saveCsvButton);
+        Controls.Add(_status);
+        Controls.Add(_resultsTabs);
+
+        AutoScaleDimensions = new SizeF(7F, 15F);
+        AutoScaleMode = AutoScaleMode.Font;
+        ClientSize = new Size(664, 542);
+        MinimumSize = new Size(560, 480);
+        Name = "MainForm";
+        StartPosition = FormStartPosition.CenterScreen;
+        Text = "Xtream Server Details";
+        _modeGroup.ResumeLayout(false);
+        _modeGroup.PerformLayout();
+        ResumeLayout(false);
+        PerformLayout();
+    }
+}

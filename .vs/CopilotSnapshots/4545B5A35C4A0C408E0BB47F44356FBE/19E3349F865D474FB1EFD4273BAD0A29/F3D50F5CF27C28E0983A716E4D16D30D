@@ -1,0 +1,60 @@
+﻿using System.Globalization;
+using IPTVInfo;
+public sealed partial class MainForm : Form
+{
+    public MainForm()
+    {
+        InitializeComponent();
+        _fullUrlMode.CheckedChanged += (_, _) => UpdateInputMode();
+        _loadButton.Click += async (_, _) => await LoadDetailsAsync();
+        UpdateInputMode();
+    }
+
+    private void UpdateInputMode()
+    {
+        bool useFullUrl = _fullUrlMode.Checked;
+        _fullUrlInput.Enabled = useFullUrl;
+        _serverInput.Enabled = !useFullUrl;
+        _usernameInput.Enabled = !useFullUrl;
+        _passwordInput.Enabled = !useFullUrl;
+    }
+
+    private async Task LoadDetailsAsync()
+    {
+        _loadButton.Enabled = false;
+        _status.Text = "Loading...";
+        _details.Clear();
+
+        try
+        {
+            XtreamIPTV client = _fullUrlMode.Checked
+                ? new XtreamIPTV(_fullUrlInput.Text.Trim())
+                : new XtreamIPTV(_serverInput.Text.Trim(), _usernameInput.Text.Trim(), _passwordInput.Text);
+
+            XtreamAccount account = await client.GetServerDetailsAsync();
+            _details.Text = string.Join(Environment.NewLine,
+            [
+                $"Status: {account.Status ?? "Not provided"}",
+                $"Subscription expires: {account.ExpirationDate?.ToLocalTime().ToString("g", CultureInfo.CurrentCulture) ?? "No expiry / not provided"}",
+                $"Trial account: {account.IsTrial?.ToString() ?? "Not provided"}",
+                $"Active connections: {account.ActiveConnections?.ToString(CultureInfo.CurrentCulture) ?? "Not provided"}",
+                $"Maximum connections: {account.MaxConnections?.ToString(CultureInfo.CurrentCulture) ?? "Not provided"}",
+                $"Server: {account.Server?.Url ?? "Not provided"}",
+                $"Port: {account.Server?.Port ?? "Not provided"}",
+                $"HTTPS port: {account.Server?.HttpsPort ?? "Not provided"}",
+                $"Protocol: {account.Server?.Protocol ?? "Not provided"}",
+                $"Timezone: {account.Server?.Timezone ?? "Not provided"}",
+                $"Server time: {account.Server?.TimeNow ?? "Not provided"}"
+            ]);
+            _status.Text = "Details loaded.";
+        }
+        catch (Exception ex)
+        {
+            _status.Text = $"Could not load details: {ex.Message}";
+        }
+        finally
+        {
+            _loadButton.Enabled = true;
+        }
+    }
+}

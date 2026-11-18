@@ -1,0 +1,109 @@
+﻿partial class MainForm
+{
+    private RadioButton _fullUrlMode = null!;
+    private RadioButton _separateFieldsMode = null!;
+    private TextBox _fullUrlInput = null!;
+    private TextBox _serverInput = null!;
+    private TextBox _usernameInput = null!;
+    private TextBox _passwordInput = null!;
+    private Button _loadButton = null!;
+    private Label _status = null!;
+    private TextBox _details = null!;
+    private GroupBox _modeGroup = null!;
+
+    private void InitializeComponent()
+    {
+        _modeGroup = new GroupBox
+        {
+            Text = "Connection details",
+            Location = new Point(16, 16),
+            Size = new Size(632, 64),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+        };
+        _fullUrlMode = new RadioButton
+        {
+            Text = "Full M3U URL",
+            Checked = true,
+            AutoSize = true,
+            Location = new Point(16, 26)
+        };
+        _separateFieldsMode = new RadioButton
+        {
+            Text = "Server and credentials",
+            AutoSize = true,
+            Location = new Point(160, 26)
+        };
+        _modeGroup.Controls.AddRange([_fullUrlMode, _separateFieldsMode]);
+
+        _fullUrlInput = new TextBox
+        {
+            Location = new Point(150, 94),
+            Size = new Size(498, 23),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+        };
+        _serverInput = new TextBox
+        {
+            Location = new Point(150, 130),
+            Size = new Size(498, 23),
+            PlaceholderText = "https://server.example:8080",
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+        };
+        _usernameInput = new TextBox
+        {
+            Location = new Point(150, 166),
+            Size = new Size(498, 23),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+        };
+        _passwordInput = new TextBox
+        {
+            Location = new Point(150, 202),
+            Size = new Size(498, 23),
+            UseSystemPasswordChar = true,
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+        };
+        _loadButton = new Button
+        {
+            Text = "Get details",
+            Location = new Point(16, 244),
+            Size = new Size(112, 30)
+        };
+        _status = new Label
+        {
+            AutoSize = true,
+            Location = new Point(140, 251),
+            MaximumSize = new Size(500, 40)
+        };
+        _details = new TextBox
+        {
+            Location = new Point(16, 286),
+            Size = new Size(632, 240),
+            Multiline = true,
+            ReadOnly = true,
+            ScrollBars = ScrollBars.Vertical,
+            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+        };
+
+        Controls.AddRange(
+        [
+            _modeGroup,
+            new Label { Text = "M3U URL", AutoSize = true, Location = new Point(16, 97) },
+            new Label { Text = "Server URL", AutoSize = true, Location = new Point(16, 133) },
+            new Label { Text = "Username", AutoSize = true, Location = new Point(16, 169) },
+            new Label { Text = "Password", AutoSize = true, Location = new Point(16, 205) },
+            _fullUrlInput,
+            _serverInput,
+            _usernameInput,
+            _passwordInput,
+            _loadButton,
+            _status,
+            _details
+        ]);
+
+        AutoScaleDimensions = new SizeF(7F, 15F);
+        AutoScaleMode = AutoScaleMode.Font;
+        ClientSize = new Size(664, 542);
+        MinimumSize = new Size(560, 480);
+        StartPosition = FormStartPosition.CenterScreen;
+        Text = "Xtream Server Details";
+    }
+}

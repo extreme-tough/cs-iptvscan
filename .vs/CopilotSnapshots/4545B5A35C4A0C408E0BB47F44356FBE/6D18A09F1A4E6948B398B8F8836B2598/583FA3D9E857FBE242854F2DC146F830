@@ -1,0 +1,204 @@
+﻿// See https://aka.ms/new-console-template for more information
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+
+
+var xtreamIPTV = new XtreamIPTV("http://170.39.192.130:8080", "56941078981play", "110724play");
+var (tvChannels, movies, tvShows) = await xtreamIPTV.GetXtreamStatsAsync();
+Console.WriteLine($"TV Channels: {tvChannels}");
+Console.WriteLine($"Movies: {movies}");
+Console.WriteLine($"TV Shows: {tvShows}");
+
+public class XtreamIPTV
+{
+    public XtreamIPTV()
+    {
+    }
+
+    public XtreamIPTV(string serverUrl, string username, string password)
+    {
+        ServerUrl = serverUrl;
+        Username = username;
+        Password = password;
+    }
+
+    public XtreamIPTV(string m3uUrl)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(m3uUrl);
+
+        if (!Uri.TryCreate(m3uUrl, UriKind.Absolute, out Uri? uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new ArgumentException("The M3U URL must be an absolute HTTP or HTTPS URL.", nameof(m3uUrl));
+        }
+
+        string? username = null;
+        string? password = null;
+        foreach (string parameter in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            string[] parts = parameter.Split('=', 2);
+            string key = Uri.UnescapeDataString(parts[0].Replace('+', ' '));
+            string value = parts.Length > 1 ? Uri.UnescapeDataString(parts[1].Replace('+', ' ')) : string.Empty;
+
+            if (key.Equals("username", StringComparison.OrdinalIgnoreCase))
+            {
+                username = value;
+            }
+            else if (key.Equals("password", StringComparison.OrdinalIgnoreCase))
+            {
+                password = value;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            throw new ArgumentException("The M3U URL must include username and password query parameters.", nameof(m3uUrl));
+        }
+
+        ServerUrl = uri.GetLeftPart(UriPartial.Authority);
+        Username = username;
+        Password = password;
+    }
+
+    public string ServerUrl { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+
+    public Task<int> GetTvChannelCountAsync() => GetCategoryCountAsync("get_live_categories");
+
+    public Task<int> GetMovieCountAsync() => GetCategoryCountAsync("get_vod_categories");
+
+    public Task<int> GetTvShowCountAsync() => GetCategoryCountAsync("get_series_categories");
+
+    public async Task<XtreamAccount> GetServerDetailsAsync()
+    {
+        UriBuilder apiUri = new($"{ServerUrl.TrimEnd('/')}/player_api.php")
+        {
+            Query = $"username={Uri.EscapeDataString(Username)}&password={Uri.EscapeDataString(Password)}"
+        };
+
+        using HttpClient client = new();
+        using HttpResponseMessage response = await client.GetAsync(apiUri.Uri);
+        response.EnsureSuccessStatusCode();
+
+        string jsonResponse = await response.Content.ReadAsStringAsync();
+        JObject payload = JObject.Parse(jsonResponse);
+        JObject userInfo = payload["user_info"] as JObject
+            ?? throw new Newtonsoft.Json.JsonSerializationException("The Xtream response did not contain user_info.");
+        JObject? serverInfo = payload["server_info"] as JObject;
+
+        return new XtreamAccount
+        {
+            Status = userInfo.Value<string>("status"),
+            ExpirationDate = ParseExpirationDate(userInfo["exp_date"]),
+            IsTrial = ParseBoolean(userInfo["is_trial"]),
+            ActiveConnections = ParseInteger(userInfo["active_cons"]),
+            MaxConnections = ParseInteger(userInfo["max_connections"]),
+            Server = serverInfo is null ? null : new XtreamServer
+            {
+                Url = serverInfo.Value<string>("url"),
+                Port = serverInfo.Value<string>("port"),
+                HttpsPort = serverInfo.Value<string>("https_port"),
+                Protocol = serverInfo.Value<string>("server_protocol"),
+                Timezone = serverInfo.Value<string>("timezone"),
+                TimeNow = serverInfo.Value<string>("time_now")
+            }
+        };
+    }
+
+    private static DateTimeOffset? ParseExpirationDate(JToken? value)
+    {
+        return long.TryParse(value?.ToString(), out long unixSeconds) && unixSeconds > 0
+            ? DateTimeOffset.FromUnixTimeSeconds(unixSeconds)
+            : null;
+    }
+
+    private static int? ParseInteger(JToken? value)
+    {
+        return int.TryParse(value?.ToString(), out int result) ? result : null;
+    }
+
+    private static bool? ParseBoolean(JToken? value)
+    {
+        string? text = value?.ToString();
+        if (bool.TryParse(text, out bool result)) return result;
+        if (int.TryParse(text, out int numericValue)) return numericValue != 0;
+        return null;
+    }
+
+    private async Task<int> GetCategoryCountAsync(string action)
+    {
+        try
+        {
+            using HttpClient client = new();
+            string apiUrl = $"{ServerUrl.TrimEnd('/')}/player_api.php?username={Uri.EscapeDataString(Username)}&password={Uri.EscapeDataString(Password)}&action={Uri.EscapeDataString(action)}";
+            HttpResponseMessage response = await client.GetAsync(apiUrl);
+            if (!response.IsSuccessStatusCode) return 0;
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            JArray data = JArray.Parse(jsonResponse);
+            return data.Count;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            return 0;
+        }
+    }
+
+    public async Task<(int tvChannels, int movies, int tvShows)> GetXtreamStatsAsync()
+    {
+        string serverUrl = ServerUrl;
+        string username = Username;
+        string password = Password;
+
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                async Task<int> GetCountAsync(string category)
+                {
+                    string apiUrl = $"{serverUrl}/player_api.php?username={username}&password={password}&action=get_{category}";
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+                    if (!response.IsSuccessStatusCode) return 0;
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+                    JArray data = JArray.Parse(jsonResponse);
+                    return data.Count;
+                }
+
+                int tvChannels = await GetTvChannelCountAsync();
+                int movies = await GetMovieCountAsync();
+                int tvShows = await GetTvShowCountAsync();
+
+                return (tvChannels, movies, tvShows);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            return (0, 0, 0);
+        }
+    }
+}
+
+public class XtreamAccount
+{
+    public string? Status { get; init; }
+    public DateTimeOffset? ExpirationDate { get; init; }
+    public bool? IsTrial { get; init; }
+    public int? ActiveConnections { get; init; }
+    public int? MaxConnections { get; init; }
+    public XtreamServer? Server { get; init; }
+}
+
+public class XtreamServer
+{
+    public string? Url { get; init; }
+    public string? Port { get; init; }
+    public string? HttpsPort { get; init; }
+    public string? Protocol { get; init; }
+    public string? Timezone { get; init; }
+    public string? TimeNow { get; init; }
+}
