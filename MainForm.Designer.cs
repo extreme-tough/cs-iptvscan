@@ -217,6 +217,7 @@ partial class MainForm
         _accountsGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         _accountsGrid.ColumnHeadersHeight = 29;
         _accountsGrid.Columns.AddRange(new DataGridViewColumn[] { dataGridViewTextBoxColumn1, dataGridViewTextBoxColumn2, dataGridViewTextBoxColumn3, dataGridViewTextBoxColumn4 });
+        _accountsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Passed by", Name = "dataGridViewTextBoxColumn5", ReadOnly = true });
         _accountsGrid.Dock = DockStyle.Fill;
         _accountsGrid.Location = new Point(0, 0);
         _accountsGrid.Margin = new Padding(3, 4, 3, 4);

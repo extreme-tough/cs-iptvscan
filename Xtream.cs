@@ -74,44 +74,102 @@ namespace IPTVInfo
 
         public Task<int> GetTvShowCountAsync() => GetCategoryCountAsync("get_series_categories");
 
-        public async Task<(bool Success, int TestedCount, List<string> Diagnostics)> TestStreamAsync()
+        public async Task<(bool Success, int TestedCount, string PassedBy, List<string> Diagnostics)> TestStreamAsync()
         {
             List<string> diagnostics = [];
+            int testedCount = 0;
+            bool channelsLoaded = false;
+            List<XtreamStream> sampledChannels = [];
 
-            UriBuilder channelsUri = new($"{ServerUrl.TrimEnd('/')}/player_api.php")
+            try
             {
-                Query = BuildCredentialsQuery("get_live_streams")
+                sampledChannels = await GetRandomStreamsAsync("get_live_streams");
+                channelsLoaded = true;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or JsonException)
+            {
+                diagnostics.Add($"Could not load live channels: {BuildExceptionDetails(ex)}");
+            }
+
+            if (!channelsLoaded || sampledChannels.Count == 0)
+            {
+                diagnostics.Add("No live channels were available for stream testing.");
+            }
+            else
+            {
+                (bool channelsWork, int channelsTested) = await TestStreamsAsync(sampledChannels, false, diagnostics);
+                testedCount += channelsTested;
+                if (channelsWork)
+                {
+                    return (true, testedCount, "Channel", diagnostics);
+                }
+            }
+
+            diagnostics.Add("Live channel test failed; testing up to 10 random movies.");
+            try
+            {
+                List<XtreamStream> sampledMovies = await GetRandomStreamsAsync("get_vod_streams");
+                if (sampledMovies.Count == 0)
+                {
+                    diagnostics.Add("No movies were returned by the provider for stream testing.");
+                }
+                else
+                {
+                    (bool moviesWork, int moviesTested) = await TestStreamsAsync(sampledMovies, true, diagnostics);
+                    testedCount += moviesTested;
+                    return (moviesWork, testedCount, moviesWork ? "Movie" : "None", diagnostics);
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or JsonException)
+            {
+                diagnostics.Add($"Could not load movies: {BuildExceptionDetails(ex)}");
+            }
+
+            return (false, testedCount, "None", diagnostics);
+        }
+
+        private async Task<List<XtreamStream>> GetRandomStreamsAsync(string action)
+        {
+            UriBuilder streamsUri = new($"{ServerUrl.TrimEnd('/')}/player_api.php")
+            {
+                Query = BuildCredentialsQuery(action)
             };
 
-            List<LiveChannel> sampledChannels;
-            using CancellationTokenSource channelListTimeout = new(TimeSpan.FromMinutes(5));
-            using (HttpClient channelsClient = new() { Timeout = Timeout.InfiniteTimeSpan })
-            using (HttpResponseMessage channelsResponse = await channelsClient.GetAsync(
-                channelsUri.Uri,
+            using CancellationTokenSource listTimeout = new(TimeSpan.FromMinutes(5));
+            using HttpClient streamsClient = new() { Timeout = Timeout.InfiniteTimeSpan };
+            using HttpResponseMessage streamsResponse = await streamsClient.GetAsync(
+                streamsUri.Uri,
                 HttpCompletionOption.ResponseHeadersRead,
-                channelListTimeout.Token))
-            {
-                channelsResponse.EnsureSuccessStatusCode();
-                await using Stream channelStream = await channelsResponse.Content.ReadAsStreamAsync(channelListTimeout.Token);
-                sampledChannels = await SelectRandomChannelsAsync(channelStream, channelListTimeout.Token);
-            }
+                listTimeout.Token);
+            streamsResponse.EnsureSuccessStatusCode();
+            await using Stream streamList = await streamsResponse.Content.ReadAsStreamAsync(listTimeout.Token);
+            return await SelectRandomStreamsAsync(streamList, listTimeout.Token);
+        }
 
-            if (sampledChannels.Count == 0)
-            {
-                diagnostics.Add("No live channels were returned by the provider for stream testing.");
-                return (false, 0, diagnostics);
-            }
-
+        private async Task<(bool Success, int TestedCount)> TestStreamsAsync(
+            List<XtreamStream> streams,
+            bool movies,
+            List<string> diagnostics)
+        {
             bool anyStreamWorks = false;
             using HttpClient streamClient = new() { Timeout = TimeSpan.FromSeconds(8) };
-            for (int index = 0; index < sampledChannels.Count; index++)
+            for (int index = 0; index < streams.Count; index++)
             {
-                LiveChannel channel = sampledChannels[index];
-                string streamId = GetStreamId(channel.StreamId)!;
-                string streamPath = string.Join('/', Uri.EscapeDataString(Username), Uri.EscapeDataString(Password), Uri.EscapeDataString(streamId));
+                XtreamStream item = streams[index];
+                string streamId = GetStreamId(item.StreamId)!;
+                string credentialsPath = string.Join('/', Uri.EscapeDataString(Username), Uri.EscapeDataString(Password));
+                string streamFile = Uri.EscapeDataString(streamId);
+                if (movies && !string.IsNullOrWhiteSpace(item.ContainerExtension))
+                {
+                    streamFile += $".{Uri.EscapeDataString(item.ContainerExtension.TrimStart('.'))}";
+                }
+
+                string streamPath = movies
+                    ? $"movie/{credentialsPath}/{streamFile}"
+                    : $"{credentialsPath}/{streamFile}";
                 Uri streamUri = new(new Uri(ServerUrl.TrimEnd('/') + "/"), streamPath);
-                string channelUrl = $"{ServerUrl.TrimEnd('/')}/{streamPath}";
-                string channelLabel = $"Channel {index + 1}/{sampledChannels.Count}, stream {streamId} ({channelUrl})";
+                string streamUrl = $"{ServerUrl.TrimEnd('/')}/{streamPath}";
+                string streamLabel = $"{(movies ? "Movie" : "Channel")} {index + 1}/{streams.Count}, stream {streamId} ({streamUrl})";
                 System.Net.HttpStatusCode? receivedStatusCode = null;
 
                 try
@@ -129,8 +187,8 @@ namespace IPTVInfo
 
                     if (response.StatusCode == System.Net.HttpStatusCode.OK)
                     {
-                        diagnostics.Add($"{channelLabel} -> {statusText}; stopping the test after the first HTTP 200 response.");
-                        return (true, index + 1, diagnostics);
+                        diagnostics.Add($"{streamLabel} -> {statusText}; stopping the test after the first HTTP 200 response.");
+                        return (true, index + 1);
                     }
 
                     if (!response.IsSuccessStatusCode || IsErrorContentType(contentType))
@@ -139,16 +197,16 @@ namespace IPTVInfo
                         string detail = responseBody is null
                             ? statusText
                             : $"{statusText}; Server response: {Truncate(responseBody, 200)}";
-                        diagnostics.Add($"{channelLabel} -> {detail}");
+                        diagnostics.Add($"{streamLabel} -> {detail}");
                         continue;
                     }
 
-                    await using Stream stream = await response.Content!.ReadAsStreamAsync();
+                    await using Stream responseStream = await response.Content!.ReadAsStreamAsync();
                     byte[] sample = new byte[512];
-                    int bytesRead = await stream.ReadAsync(sample.AsMemory(0, sample.Length), CancellationToken.None);
+                    int bytesRead = await responseStream.ReadAsync(sample.AsMemory(0, sample.Length), CancellationToken.None);
                     if (bytesRead > 0 && !LooksLikeErrorPayload(sample.AsSpan(0, bytesRead)))
                     {
-                        diagnostics.Add($"{channelLabel} -> {statusText}; valid media sample received ({bytesRead} bytes).");
+                        diagnostics.Add($"{streamLabel} -> {statusText}; valid media sample received ({bytesRead} bytes).");
                         anyStreamWorks = true;
                         continue;
                     }
@@ -156,7 +214,7 @@ namespace IPTVInfo
                     string payloadText = bytesRead > 0
                         ? $" Server response: {Truncate(Encoding.UTF8.GetString(sample, 0, bytesRead), 200)}"
                         : string.Empty;
-                    diagnostics.Add($"{channelLabel} -> {statusText}; response payload looked like an error or empty stream.{payloadText}");
+                    diagnostics.Add($"{streamLabel} -> {statusText}; response payload looked like an error or empty stream.{payloadText}");
                 }
                 catch (HttpRequestException ex)
                 {
@@ -164,25 +222,25 @@ namespace IPTVInfo
                     string status = statusCode is { } code
                         ? $"HTTP {(int)code} {code}; "
                         : "No HTTP response; ";
-                    diagnostics.Add($"{channelLabel} -> {status}HttpRequestException: {BuildExceptionDetails(ex)}");
+                    diagnostics.Add($"{streamLabel} -> {status}HttpRequestException: {BuildExceptionDetails(ex)}");
                 }
                 catch (TaskCanceledException ex)
                 {
                     string status = receivedStatusCode is { } code
                         ? $"HTTP {(int)code} {code}; "
                         : "No HTTP response; ";
-                    diagnostics.Add($"{channelLabel} -> {status}TaskCanceledException: {BuildExceptionDetails(ex)}");
+                    diagnostics.Add($"{streamLabel} -> {status}TaskCanceledException: {BuildExceptionDetails(ex)}");
                 }
                 catch (IOException ex)
                 {
                     string status = receivedStatusCode is { } code
                         ? $"HTTP {(int)code} {code}; "
                         : "No HTTP response; ";
-                    diagnostics.Add($"{channelLabel} -> {status}IOException: {BuildExceptionDetails(ex)}");
+                    diagnostics.Add($"{streamLabel} -> {status}IOException: {BuildExceptionDetails(ex)}");
                 }
             }
 
-            return (anyStreamWorks, sampledChannels.Count, diagnostics);
+            return (anyStreamWorks, streams.Count);
         }
 
         public async Task<int> GetLiveChannelCountAsync()
@@ -197,7 +255,7 @@ namespace IPTVInfo
             response.EnsureSuccessStatusCode();
 
             await using Stream channelStream = await response.Content.ReadAsStreamAsync();
-            List<LiveChannel?>? channels = await JsonSerializer.DeserializeAsync<List<LiveChannel?>>(channelStream);
+            List<XtreamStream?>? channels = await JsonSerializer.DeserializeAsync<List<XtreamStream?>>(channelStream);
             return (channels ?? []).Count(channel =>
                 channel is not null && !string.IsNullOrWhiteSpace(GetStreamId(channel.StreamId)));
         }
@@ -249,34 +307,34 @@ namespace IPTVInfo
                 : $"{normalized[..(maxLength - 3)]}...";
         }
 
-        private static async Task<List<LiveChannel>> SelectRandomChannelsAsync(Stream channelStream, CancellationToken cancellationToken)
+        private static async Task<List<XtreamStream>> SelectRandomStreamsAsync(Stream streamList, CancellationToken cancellationToken)
         {
-            List<LiveChannel?>? channelList = await JsonSerializer.DeserializeAsync<List<LiveChannel?>>(
-                channelStream,
+            List<XtreamStream?>? streamItems = await JsonSerializer.DeserializeAsync<List<XtreamStream?>>(
+                streamList,
                 cancellationToken: cancellationToken);
 
-            List<LiveChannel> validChannels = new(channelList?.Count ?? 0);
-            foreach (LiveChannel? channel in channelList ?? [])
+            List<XtreamStream> validStreams = new(streamItems?.Count ?? 0);
+            foreach (XtreamStream? item in streamItems ?? [])
             {
-                if (channel is not null && !string.IsNullOrWhiteSpace(GetStreamId(channel.StreamId)))
+                if (item is not null && !string.IsNullOrWhiteSpace(GetStreamId(item.StreamId)))
                 {
-                    validChannels.Add(channel);
+                    validStreams.Add(item);
                 }
             }
 
-            int sampleCount = Math.Min(10, validChannels.Count);
+            int sampleCount = Math.Min(10, validStreams.Count);
             for (int index = 0; index < sampleCount; index++)
             {
-                int randomIndex = Random.Shared.Next(index, validChannels.Count);
-                (validChannels[index], validChannels[randomIndex]) = (validChannels[randomIndex], validChannels[index]);
+                int randomIndex = Random.Shared.Next(index, validStreams.Count);
+                (validStreams[index], validStreams[randomIndex]) = (validStreams[randomIndex], validStreams[index]);
             }
 
-            if (sampleCount < validChannels.Count)
+            if (sampleCount < validStreams.Count)
             {
-                validChannels.RemoveRange(sampleCount, validChannels.Count - sampleCount);
+                validStreams.RemoveRange(sampleCount, validStreams.Count - sampleCount);
             }
 
-            return validChannels;
+            return validStreams;
         }
 
         private static string? GetStreamId(JsonElement streamId)
@@ -432,7 +490,7 @@ namespace IPTVInfo
         }
     }
 
-    internal sealed class LiveChannel
+    internal sealed class XtreamStream
     {
         [JsonPropertyName("stream_id")]
         public JsonElement StreamId { get; set; }

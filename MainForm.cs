@@ -34,17 +34,19 @@ public sealed partial class MainForm : Form
     {
         _loadButton.Enabled = false;
         _testStreamButton.Enabled = false;
-        _status.Text = "Testing up to 10 random live channels...";
+        _status.Text = "Testing up to 10 random live channels; movies will be tried if needed...";
         _details.Clear();
 
         try
         {
-            var (streamWorks, testedCount, diagnostics) = await CreateClient().TestStreamAsync();
+            var (streamWorks, testedCount, passedBy, diagnostics) = await CreateClient().TestStreamAsync();
             _details.Text = string.Join(Environment.NewLine, diagnostics);
             _details.AppendText(Environment.NewLine + Environment.NewLine +
-                $"Final result: {(streamWorks ? "Passed" : "Failed")}. Tested {testedCount} channel(s); " +
+                $"Final result: {(streamWorks ? $"Passed by {passedBy.ToLowerInvariant()}" : "Failed")}. " +
+                $"Tested {testedCount} stream(s); " +
                 (streamWorks ? "at least one valid stream was received." : "no valid stream was received."));
-            _status.Text = $"Stream test {(streamWorks ? "passed" : "failed")}; {testedCount} channel(s) tested. See results below.";
+            _status.Text = $"Stream test {(streamWorks ? $"passed by {passedBy.ToLowerInvariant()}" : "failed")}; " +
+                $"{testedCount} stream(s) tested. See results below.";
         }
         catch (Exception ex)
         {
@@ -101,7 +103,7 @@ public sealed partial class MainForm : Form
                 try
                 {
                     XtreamIPTV client = new(urls[index]);
-                    var (streamWorks, _, _) = await client.TestStreamAsync();
+                    var (streamWorks, _, passedBy, _) = await client.TestStreamAsync();
                     if (!streamWorks)
                     {
                         _details.AppendText($"URL {index + 1}: stream test failed.{Environment.NewLine}");
@@ -118,7 +120,7 @@ public sealed partial class MainForm : Form
                         _details.AppendText($"URL {index + 1}: stream test passed, but channel count could not be loaded: {ex.Message}{Environment.NewLine}");
                     }
 
-                    _accountsGrid.Rows.Add(client.ServerUrl, client.Username, client.Password, channelCount);
+                    _accountsGrid.Rows.Add(client.ServerUrl, client.Username, client.Password, channelCount, passedBy);
                     workingCount++;
                 }
                 catch (Exception ex)
