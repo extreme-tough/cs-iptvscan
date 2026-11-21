@@ -44,6 +44,7 @@ partial class MainForm
         dataGridViewTextBoxColumn2 = new DataGridViewTextBoxColumn();
         dataGridViewTextBoxColumn3 = new DataGridViewTextBoxColumn();
         dataGridViewTextBoxColumn4 = new DataGridViewTextBoxColumn();
+        dataGridViewTextBoxColumn5 = new DataGridViewTextBoxColumn();
         _detailsTab = new TabPage();
         _fullUrlLabel = new Label();
         _serverLabel = new Label();
@@ -61,11 +62,9 @@ partial class MainForm
         _modeGroup.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         _modeGroup.Controls.Add(_fullUrlMode);
         _modeGroup.Controls.Add(_separateFieldsMode);
-        _modeGroup.Location = new Point(18, 21);
-        _modeGroup.Margin = new Padding(3, 4, 3, 4);
+        _modeGroup.Location = new Point(16, 16);
         _modeGroup.Name = "_modeGroup";
-        _modeGroup.Padding = new Padding(3, 4, 3, 4);
-        _modeGroup.Size = new Size(722, 85);
+        _modeGroup.Size = new Size(632, 64);
         _modeGroup.TabIndex = 0;
         _modeGroup.TabStop = false;
         _modeGroup.Text = "Connection details";
@@ -74,10 +73,9 @@ partial class MainForm
         // 
         _fullUrlMode.AutoSize = true;
         _fullUrlMode.Checked = true;
-        _fullUrlMode.Location = new Point(18, 35);
-        _fullUrlMode.Margin = new Padding(3, 4, 3, 4);
+        _fullUrlMode.Location = new Point(16, 26);
         _fullUrlMode.Name = "_fullUrlMode";
-        _fullUrlMode.Size = new Size(118, 24);
+        _fullUrlMode.Size = new Size(96, 19);
         _fullUrlMode.TabIndex = 0;
         _fullUrlMode.TabStop = true;
         _fullUrlMode.Text = "Full M3U URL";
@@ -85,106 +83,96 @@ partial class MainForm
         // _separateFieldsMode
         // 
         _separateFieldsMode.AutoSize = true;
-        _separateFieldsMode.Location = new Point(183, 35);
-        _separateFieldsMode.Margin = new Padding(3, 4, 3, 4);
+        _separateFieldsMode.Location = new Point(160, 26);
         _separateFieldsMode.Name = "_separateFieldsMode";
-        _separateFieldsMode.Size = new Size(176, 24);
+        _separateFieldsMode.Size = new Size(140, 19);
         _separateFieldsMode.TabIndex = 1;
         _separateFieldsMode.Text = "Server and credentials";
         // 
         // _fullUrlInput
         // 
         _fullUrlInput.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-        _fullUrlInput.Location = new Point(171, 125);
-        _fullUrlInput.Margin = new Padding(3, 4, 3, 4);
+        _fullUrlInput.Location = new Point(150, 94);
         _fullUrlInput.Name = "_fullUrlInput";
-        _fullUrlInput.Size = new Size(569, 27);
+        _fullUrlInput.Size = new Size(498, 23);
         _fullUrlInput.TabIndex = 5;
         // 
         // _serverInput
         // 
         _serverInput.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-        _serverInput.Location = new Point(171, 173);
-        _serverInput.Margin = new Padding(3, 4, 3, 4);
+        _serverInput.Location = new Point(150, 130);
         _serverInput.Name = "_serverInput";
         _serverInput.PlaceholderText = "https://server.example:8080";
-        _serverInput.Size = new Size(569, 27);
+        _serverInput.Size = new Size(498, 23);
         _serverInput.TabIndex = 6;
         // 
         // _usernameInput
         // 
         _usernameInput.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-        _usernameInput.Location = new Point(171, 221);
-        _usernameInput.Margin = new Padding(3, 4, 3, 4);
+        _usernameInput.Location = new Point(150, 166);
         _usernameInput.Name = "_usernameInput";
-        _usernameInput.Size = new Size(569, 27);
+        _usernameInput.Size = new Size(498, 23);
         _usernameInput.TabIndex = 7;
         // 
         // _passwordInput
         // 
         _passwordInput.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-        _passwordInput.Location = new Point(171, 269);
-        _passwordInput.Margin = new Padding(3, 4, 3, 4);
+        _passwordInput.Location = new Point(150, 202);
         _passwordInput.Name = "_passwordInput";
-        _passwordInput.Size = new Size(569, 27);
+        _passwordInput.Size = new Size(498, 23);
         _passwordInput.TabIndex = 8;
         _passwordInput.UseSystemPasswordChar = true;
         // 
         // _loadButton
         // 
-        _loadButton.Location = new Point(18, 325);
-        _loadButton.Margin = new Padding(3, 4, 3, 4);
+        _loadButton.Location = new Point(16, 244);
         _loadButton.Name = "_loadButton";
-        _loadButton.Size = new Size(128, 40);
+        _loadButton.Size = new Size(112, 30);
         _loadButton.TabIndex = 9;
         _loadButton.Text = "Get details";
         // 
         // _testStreamButton
         // 
-        _testStreamButton.Location = new Point(155, 325);
-        _testStreamButton.Margin = new Padding(3, 4, 3, 4);
+        _testStreamButton.Location = new Point(136, 244);
         _testStreamButton.Name = "_testStreamButton";
-        _testStreamButton.Size = new Size(128, 40);
+        _testStreamButton.Size = new Size(112, 30);
         _testStreamButton.TabIndex = 10;
         _testStreamButton.Text = "Test stream";
         // 
         // _importFileButton
         // 
-        _importFileButton.Location = new Point(293, 325);
-        _importFileButton.Margin = new Padding(3, 4, 3, 4);
+        _importFileButton.Location = new Point(256, 244);
         _importFileButton.Name = "_importFileButton";
-        _importFileButton.Size = new Size(155, 40);
+        _importFileButton.Size = new Size(136, 30);
         _importFileButton.TabIndex = 11;
         _importFileButton.Text = "Test URLs from file";
+        _importFileButton.Click += _importFileButton_Click;
         // 
         // _saveCsvButton
         // 
-        _saveCsvButton.Location = new Point(459, 325);
-        _saveCsvButton.Margin = new Padding(3, 4, 3, 4);
+        _saveCsvButton.Location = new Point(402, 244);
         _saveCsvButton.Name = "_saveCsvButton";
-        _saveCsvButton.Size = new Size(105, 40);
+        _saveCsvButton.Size = new Size(92, 30);
         _saveCsvButton.TabIndex = 12;
         _saveCsvButton.Text = "Save CSV";
         // 
         // _status
         // 
         _status.AutoSize = true;
-        _status.Location = new Point(36, 383);
-        _status.MaximumSize = new Size(167, 53);
+        _status.Location = new Point(32, 287);
         _status.Name = "_status";
-        _status.Size = new Size(0, 20);
+        _status.Size = new Size(0, 15);
         _status.TabIndex = 13;
         // 
         // _details
         // 
         _details.Dock = DockStyle.Fill;
         _details.Location = new Point(0, 0);
-        _details.Margin = new Padding(3, 4, 3, 4);
         _details.Multiline = true;
         _details.Name = "_details";
         _details.ReadOnly = true;
         _details.ScrollBars = ScrollBars.Vertical;
-        _details.Size = new Size(714, 251);
+        _details.Size = new Size(624, 185);
         _details.TabIndex = 0;
         // 
         // _resultsTabs
@@ -192,20 +180,18 @@ partial class MainForm
         _resultsTabs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         _resultsTabs.Controls.Add(_accountsTab);
         _resultsTabs.Controls.Add(_detailsTab);
-        _resultsTabs.Location = new Point(18, 417);
-        _resultsTabs.Margin = new Padding(3, 4, 3, 4);
+        _resultsTabs.Location = new Point(16, 313);
         _resultsTabs.Name = "_resultsTabs";
         _resultsTabs.SelectedIndex = 0;
-        _resultsTabs.Size = new Size(722, 284);
+        _resultsTabs.Size = new Size(632, 213);
         _resultsTabs.TabIndex = 14;
         // 
         // _accountsTab
         // 
         _accountsTab.Controls.Add(_accountsGrid);
-        _accountsTab.Location = new Point(4, 29);
-        _accountsTab.Margin = new Padding(3, 4, 3, 4);
+        _accountsTab.Location = new Point(4, 24);
         _accountsTab.Name = "_accountsTab";
-        _accountsTab.Size = new Size(714, 287);
+        _accountsTab.Size = new Size(624, 185);
         _accountsTab.TabIndex = 0;
         _accountsTab.Text = "Working accounts";
         _accountsTab.UseVisualStyleBackColor = true;
@@ -216,17 +202,15 @@ partial class MainForm
         _accountsGrid.AllowUserToDeleteRows = false;
         _accountsGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         _accountsGrid.ColumnHeadersHeight = 29;
-        _accountsGrid.Columns.AddRange(new DataGridViewColumn[] { dataGridViewTextBoxColumn1, dataGridViewTextBoxColumn2, dataGridViewTextBoxColumn3, dataGridViewTextBoxColumn4 });
-        _accountsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Passed by", Name = "dataGridViewTextBoxColumn5", ReadOnly = true });
+        _accountsGrid.Columns.AddRange(new DataGridViewColumn[] { dataGridViewTextBoxColumn1, dataGridViewTextBoxColumn2, dataGridViewTextBoxColumn3, dataGridViewTextBoxColumn4, dataGridViewTextBoxColumn5 });
         _accountsGrid.Dock = DockStyle.Fill;
         _accountsGrid.Location = new Point(0, 0);
-        _accountsGrid.Margin = new Padding(3, 4, 3, 4);
         _accountsGrid.MultiSelect = false;
         _accountsGrid.Name = "_accountsGrid";
         _accountsGrid.ReadOnly = true;
         _accountsGrid.RowHeadersWidth = 51;
         _accountsGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-        _accountsGrid.Size = new Size(714, 287);
+        _accountsGrid.Size = new Size(624, 185);
         _accountsGrid.TabIndex = 0;
         // 
         // dataGridViewTextBoxColumn1
@@ -252,18 +236,24 @@ partial class MainForm
         // 
         // dataGridViewTextBoxColumn4
         // 
-        dataGridViewTextBoxColumn4.HeaderText = "Channels";
+        dataGridViewTextBoxColumn4.HeaderText = "Live channels";
         dataGridViewTextBoxColumn4.MinimumWidth = 6;
         dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
         dataGridViewTextBoxColumn4.ReadOnly = true;
         // 
+        // dataGridViewTextBoxColumn5
+        // 
+        dataGridViewTextBoxColumn5.HeaderText = "Passing category";
+        dataGridViewTextBoxColumn5.MinimumWidth = 6;
+        dataGridViewTextBoxColumn5.Name = "dataGridViewTextBoxColumn5";
+        dataGridViewTextBoxColumn5.ReadOnly = true;
+        // 
         // _detailsTab
         // 
         _detailsTab.Controls.Add(_details);
-        _detailsTab.Location = new Point(4, 29);
-        _detailsTab.Margin = new Padding(3, 4, 3, 4);
+        _detailsTab.Location = new Point(4, 24);
         _detailsTab.Name = "_detailsTab";
-        _detailsTab.Size = new Size(714, 251);
+        _detailsTab.Size = new Size(624, 185);
         _detailsTab.TabIndex = 1;
         _detailsTab.Text = "Details / test output";
         _detailsTab.UseVisualStyleBackColor = true;
@@ -271,44 +261,44 @@ partial class MainForm
         // _fullUrlLabel
         // 
         _fullUrlLabel.AutoSize = true;
-        _fullUrlLabel.Location = new Point(18, 129);
+        _fullUrlLabel.Location = new Point(16, 97);
         _fullUrlLabel.Name = "_fullUrlLabel";
-        _fullUrlLabel.Size = new Size(70, 20);
+        _fullUrlLabel.Size = new Size(56, 15);
         _fullUrlLabel.TabIndex = 1;
         _fullUrlLabel.Text = "M3U URL";
         // 
         // _serverLabel
         // 
         _serverLabel.AutoSize = true;
-        _serverLabel.Location = new Point(18, 177);
+        _serverLabel.Location = new Point(16, 133);
         _serverLabel.Name = "_serverLabel";
-        _serverLabel.Size = new Size(80, 20);
+        _serverLabel.Size = new Size(63, 15);
         _serverLabel.TabIndex = 2;
         _serverLabel.Text = "Server URL";
         // 
         // _usernameLabel
         // 
         _usernameLabel.AutoSize = true;
-        _usernameLabel.Location = new Point(18, 225);
+        _usernameLabel.Location = new Point(16, 169);
         _usernameLabel.Name = "_usernameLabel";
-        _usernameLabel.Size = new Size(75, 20);
+        _usernameLabel.Size = new Size(60, 15);
         _usernameLabel.TabIndex = 3;
         _usernameLabel.Text = "Username";
         // 
         // _passwordLabel
         // 
         _passwordLabel.AutoSize = true;
-        _passwordLabel.Location = new Point(18, 273);
+        _passwordLabel.Location = new Point(16, 205);
         _passwordLabel.Name = "_passwordLabel";
-        _passwordLabel.Size = new Size(70, 20);
+        _passwordLabel.Size = new Size(57, 15);
         _passwordLabel.TabIndex = 4;
         _passwordLabel.Text = "Password";
         // 
         // MainForm
         // 
-        AutoScaleDimensions = new SizeF(8F, 20F);
+        AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(759, 723);
+        ClientSize = new Size(664, 542);
         Controls.Add(_modeGroup);
         Controls.Add(_fullUrlLabel);
         Controls.Add(_serverLabel);
@@ -324,8 +314,7 @@ partial class MainForm
         Controls.Add(_saveCsvButton);
         Controls.Add(_status);
         Controls.Add(_resultsTabs);
-        Margin = new Padding(3, 4, 3, 4);
-        MinimumSize = new Size(637, 624);
+        MinimumSize = new Size(559, 478);
         Name = "MainForm";
         StartPosition = FormStartPosition.CenterScreen;
         Text = "Xtream Server Details";
@@ -344,4 +333,5 @@ partial class MainForm
     private DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
     private DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
     private DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
+    private DataGridViewTextBoxColumn dataGridViewTextBoxColumn5;
 }

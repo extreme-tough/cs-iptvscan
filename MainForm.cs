@@ -9,7 +9,6 @@ public sealed partial class MainForm : Form
         _fullUrlMode.CheckedChanged += (_, _) => UpdateInputMode();
         _loadButton.Click += async (_, _) => await LoadDetailsAsync();
         _testStreamButton.Click += async (_, _) => await TestStreamAsync();
-        _importFileButton.Click += async (_, _) => await TestUrlsFromFileAsync();
         _saveCsvButton.Click += (_, _) => SaveGridToCsv();
         UpdateInputMode();
     }
@@ -34,7 +33,7 @@ public sealed partial class MainForm : Form
     {
         _loadButton.Enabled = false;
         _testStreamButton.Enabled = false;
-        _status.Text = "Testing up to 10 random live channels; movies will be tried if needed...";
+        _status.Text = "Testing up to 10 random live channels and 10 random movies...";
         _details.Clear();
 
         try
@@ -95,33 +94,20 @@ public sealed partial class MainForm : Form
                 return;
             }
 
-            int workingCount = 0;
+            int urlsWithPassingTests = 0;
+            int passingCategoryCount = 0;
             for (int index = 0; index < urls.Count; index++)
             {
                 _status.Text = $"Testing URL {index + 1} of {urls.Count}...";
 
                 try
                 {
-                    XtreamIPTV client = new(urls[index]);
-                    var (streamWorks, _, passedBy, _) = await client.TestStreamAsync();
-                    if (!streamWorks)
+                    int passingCategories = await TestUrlAsync(urls[index], index + 1);
+                    if (passingCategories > 0)
                     {
-                        _details.AppendText($"URL {index + 1}: stream test failed.{Environment.NewLine}");
-                        continue;
+                        urlsWithPassingTests++;
+                        passingCategoryCount += passingCategories;
                     }
-
-                    string channelCount = "Unavailable";
-                    try
-                    {
-                        channelCount = (await client.GetLiveChannelCountAsync()).ToString(CultureInfo.CurrentCulture);
-                    }
-                    catch (Exception ex)
-                    {
-                        _details.AppendText($"URL {index + 1}: stream test passed, but channel count could not be loaded: {ex.Message}{Environment.NewLine}");
-                    }
-
-                    _accountsGrid.Rows.Add(client.ServerUrl, client.Username, client.Password, channelCount, passedBy);
-                    workingCount++;
                 }
                 catch (Exception ex)
                 {
@@ -129,7 +115,7 @@ public sealed partial class MainForm : Form
                 }
             }
 
-            _status.Text = $"Finished testing {urls.Count} URL(s); {workingCount} working account(s) found.";
+            _status.Text = $"Finished testing {urls.Count} URL(s); {urlsWithPassingTests} passed, adding {passingCategoryCount} channel/movie result(s).";
             _resultsTabs.SelectedTab = _accountsTab;
         }
         catch (Exception ex)
@@ -141,6 +127,59 @@ public sealed partial class MainForm : Form
             _loadButton.Enabled = true;
             _testStreamButton.Enabled = true;
             _importFileButton.Enabled = true;
+        }
+    }
+
+    private async Task<int> TestUrlAsync(string url, int urlNumber)
+    {
+        XtreamIPTV client = new(url);
+        var channelTest = await client.TestStreamCategoryAsync(movies: false);
+        var movieTest = await client.TestStreamCategoryAsync(movies: true);
+
+        AppendCategoryTestDetails(urlNumber, "TV channels", channelTest);
+        AppendCategoryTestDetails(urlNumber, "Movies", movieTest);
+
+        int passingCategories = (channelTest.Success ? 1 : 0) + (movieTest.Success ? 1 : 0);
+        if (passingCategories == 0)
+        {
+            return 0;
+        }
+
+        string channelCount = "Unavailable";
+        try
+        {
+            channelCount = (await client.GetLiveChannelCountAsync()).ToString(CultureInfo.CurrentCulture);
+        }
+        catch (Exception ex)
+        {
+            _details.AppendText($"URL {urlNumber}: channel count could not be loaded: {ex.Message}{Environment.NewLine}");
+        }
+
+        if (channelTest.Success)
+        {
+            _accountsGrid.Rows.Add(client.ServerUrl, client.Username, client.Password, channelCount, "TV channels");
+        }
+
+        if (movieTest.Success)
+        {
+            _accountsGrid.Rows.Add(client.ServerUrl, client.Username, client.Password, channelCount, "Movies");
+        }
+
+        return passingCategories;
+    }
+
+    private void AppendCategoryTestDetails(
+        int urlNumber,
+        string category,
+        (bool Success, int TestedCount, List<string> Diagnostics) result)
+    {
+        _details.AppendText(
+            $"URL {urlNumber}: {category} test {(result.Success ? "passed" : "failed")}; " +
+            $"tested {result.TestedCount} stream(s).{Environment.NewLine}");
+
+        foreach (string diagnostic in result.Diagnostics)
+        {
+            _details.AppendText($"  {diagnostic}{Environment.NewLine}");
         }
     }
 
@@ -226,5 +265,10 @@ public sealed partial class MainForm : Form
         {
             _loadButton.Enabled = true;
         }
+    }
+
+    private async void _importFileButton_Click(object sender, EventArgs e)
+    {
+        await TestUrlsFromFileAsync();
     }
 }

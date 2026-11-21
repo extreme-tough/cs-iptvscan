@@ -76,56 +76,49 @@ namespace IPTVInfo
 
         public async Task<(bool Success, int TestedCount, string PassedBy, List<string> Diagnostics)> TestStreamAsync()
         {
+            var channelTest = await TestStreamCategoryAsync(movies: false);
+            var movieTest = await TestStreamCategoryAsync(movies: true);
+            List<string> diagnostics = [.. channelTest.Diagnostics, .. movieTest.Diagnostics];
+
+            string passedBy = (channelTest.Success, movieTest.Success) switch
+            {
+                (true, true) => "Channel and Movie",
+                (true, false) => "Channel",
+                (false, true) => "Movie",
+                _ => "None"
+            };
+
+            return (
+                channelTest.Success || movieTest.Success,
+                channelTest.TestedCount + movieTest.TestedCount,
+                passedBy,
+                diagnostics);
+        }
+
+        public async Task<(bool Success, int TestedCount, List<string> Diagnostics)> TestStreamCategoryAsync(bool movies)
+        {
             List<string> diagnostics = [];
-            int testedCount = 0;
-            bool channelsLoaded = false;
-            List<XtreamStream> sampledChannels = [];
+            string streamType = movies ? "movies" : "live channels";
+            List<XtreamStream> sampledStreams;
 
             try
             {
-                sampledChannels = await GetRandomStreamsAsync("get_live_streams");
-                channelsLoaded = true;
+                sampledStreams = await GetRandomStreamsAsync(movies ? "get_vod_streams" : "get_live_streams");
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or JsonException)
             {
-                diagnostics.Add($"Could not load live channels: {BuildExceptionDetails(ex)}");
+                diagnostics.Add($"Could not load {streamType}: {BuildExceptionDetails(ex)}");
+                return (false, 0, diagnostics);
             }
 
-            if (!channelsLoaded || sampledChannels.Count == 0)
+            if (sampledStreams.Count == 0)
             {
-                diagnostics.Add("No live channels were available for stream testing.");
-            }
-            else
-            {
-                (bool channelsWork, int channelsTested) = await TestStreamsAsync(sampledChannels, false, diagnostics);
-                testedCount += channelsTested;
-                if (channelsWork)
-                {
-                    return (true, testedCount, "Channel", diagnostics);
-                }
+                diagnostics.Add($"No {streamType} were available for stream testing.");
+                return (false, 0, diagnostics);
             }
 
-            diagnostics.Add("Live channel test failed; testing up to 10 random movies.");
-            try
-            {
-                List<XtreamStream> sampledMovies = await GetRandomStreamsAsync("get_vod_streams");
-                if (sampledMovies.Count == 0)
-                {
-                    diagnostics.Add("No movies were returned by the provider for stream testing.");
-                }
-                else
-                {
-                    (bool moviesWork, int moviesTested) = await TestStreamsAsync(sampledMovies, true, diagnostics);
-                    testedCount += moviesTested;
-                    return (moviesWork, testedCount, moviesWork ? "Movie" : "None", diagnostics);
-                }
-            }
-            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or JsonException)
-            {
-                diagnostics.Add($"Could not load movies: {BuildExceptionDetails(ex)}");
-            }
-
-            return (false, testedCount, "None", diagnostics);
+            (bool success, int testedCount) = await TestStreamsAsync(sampledStreams, movies, diagnostics);
+            return (success, testedCount, diagnostics);
         }
 
         private async Task<List<XtreamStream>> GetRandomStreamsAsync(string action)

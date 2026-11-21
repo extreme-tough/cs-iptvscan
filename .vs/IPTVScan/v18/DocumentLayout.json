@@ -3,20 +3,20 @@
   "WorkspaceRootPath": "E:\\GitHub\\Dotnet\\IPTVScan\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|e:\\github\\dotnet\\iptvscan\\xtream.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|solutionrelative:xtream.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|e:\\github\\dotnet\\iptvscan\\mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|solutionrelative:mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|e:\\github\\dotnet\\iptvscan\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|e:\\github\\dotnet\\iptvscan\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|e:\\github\\dotnet\\iptvscan\\xtream.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|solutionrelative:xtream.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|e:\\github\\dotnet\\iptvscan\\mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|solutionrelative:mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|E:\\GitHub\\Dotnet\\IPTVScan\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{1745320C-2C61-47D6-8AF3-5C6F8A9F8814}|IPTVScan.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
   "DocumentGroupContainers": [
@@ -26,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -42,13 +42,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
               "Title": "MainForm.Designer.cs",
               "DocumentMoniker": "E:\\GitHub\\Dotnet\\IPTVScan\\MainForm.Designer.cs",
               "RelativeDocumentMoniker": "MainForm.Designer.cs",
               "ToolTip": "E:\\GitHub\\Dotnet\\IPTVScan\\MainForm.Designer.cs",
               "RelativeToolTip": "MainForm.Designer.cs",
-              "ViewState": "AgIAANsAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAANkAAAAAAAAAAAAnwOwAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-20T03:59:04.024Z",
               "EditorCaption": "",
@@ -62,7 +62,7 @@
               "RelativeDocumentMoniker": "MainForm.cs",
               "ToolTip": "E:\\GitHub\\Dotnet\\IPTVScan\\MainForm.cs",
               "RelativeToolTip": "MainForm.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAAMwAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABAAAAAAAAAAAAAMwAAAAAASAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-20T03:59:03.68Z",
               "EditorCaption": "",
@@ -70,13 +70,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "Xtream.cs",
               "DocumentMoniker": "E:\\GitHub\\Dotnet\\IPTVScan\\Xtream.cs",
               "RelativeDocumentMoniker": "Xtream.cs",
               "ToolTip": "E:\\GitHub\\Dotnet\\IPTVScan\\Xtream.cs",
               "RelativeToolTip": "Xtream.cs",
-              "ViewState": "AgIAAD0AAAAAAAAAAAASwFIAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAJAAAAAAAAAAAAAjwKgAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-20T03:50:16.832Z",
               "EditorCaption": "",
@@ -84,7 +84,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "MainForm.cs [Design]",
               "DocumentMoniker": "E:\\GitHub\\Dotnet\\IPTVScan\\MainForm.cs",
               "RelativeDocumentMoniker": "MainForm.cs",
